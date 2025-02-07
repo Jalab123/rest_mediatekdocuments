@@ -46,6 +46,12 @@ class MyAccessBDD extends AccessBDD {
             case "etat" :
                 // select portant sur une table contenant juste id et libelle
                 return $this->selectTableSimple($table);
+            case "commande":
+                return $this->selectCommandes();
+            case "commandedocument" :
+                return $this->selectCommandeDocuments($champs);
+            case "suivi":
+                return $this->selectSuivis();
             case "" :
                 // return $this->uneFonction(parametres);
             default:
@@ -65,6 +71,8 @@ class MyAccessBDD extends AccessBDD {
         switch($table){
             case "" :
                 // return $this->uneFonction(parametres);
+            case "commandedocument":
+                return $this->insertCommandeDocument($champs);
             default:                    
                 // cas général
                 return $this->insertOneTupleOneTable($table, $champs);	
@@ -83,6 +91,8 @@ class MyAccessBDD extends AccessBDD {
         switch($table){
             case "" :
                 // return $this->uneFonction(parametres);
+            case "suivi":
+                return $this->updateSuivi($champs);
             default:                    
                 // cas général
                 return $this->updateOneTupleOneTable($table, $id, $champs);
@@ -100,12 +110,104 @@ class MyAccessBDD extends AccessBDD {
         switch($table){
             case "" :
                 // return $this->uneFonction(parametres);
+            case "commande":
+                return $this->deleteCommande($champs);
+            case "commandedocument":
+                return $this->deleteCommandeDocument($champs);
+            case "suivi":
+                return $this->deleteSuivi($champs);
             default:                    
                 // cas général
                 return $this->deleteTuplesOneTable($table, $champs);	
         }
     }	    
+    
+    private function updateSuivi(?array $champs) : ?int {
+        if(empty($champs)){
+            return null;
+        }
+        $champNecessaire['id'] = $champs['Id'];
+        $champNecessaire['statut'] = $champs['Statut'];
+        $requete = "update suivi set ";
+        $requete .= "statut=:statut ";			
+        $requete .= "where id=:id;";		
+        return $this->conn->updateBDD($requete, $champNecessaire);	        
+    }
+    
+    private function deleteCommande(?array $champs) : ?int{
+        if(empty($champs)){
+            return null;
+        }
+        $champNecessaire['id'] = $champs['Id'];
+        $requete = "delete from commande ";
+        $requete .= "where id=:id;";  
+        return $this->conn->updateBDD($requete, $champNecessaire);	        
+    }
+    
+    private function deleteCommandeDocument(?array $champs) : ?int{
+        if(empty($champs)){
+            return null;
+        }
+        $champNecessaire['id'] = $champs['Id'];
+        $requete = "delete from commandedocument ";
+        $requete .= "where id=:id;";  
+        return $this->conn->updateBDD($requete, $champNecessaire);	        
+    }
+    
+    private function deleteSuivi(?array $champs) : ?int{
+        if(empty($champs)){
+            return null;
+        }
+        $champNecessaire['id'] = $champs['Id'];
+        $requete = "delete from suivi ";
+        $requete .= "where id=:id;";  
+        return $this->conn->updateBDD($requete, $champNecessaire);	        
+    }
         
+    private function selectCommandeDocuments(?array $champs): ?array{
+        if(empty($champs)){
+            return null;
+        }
+        if(!array_key_exists('idlivredvd', $champs)){
+            return null;
+        }
+        $champNecessaire['idlivredvd'] = $champs['idlivredvd'];
+        $requete = "Select cd.id, cd.idLivreDvd, cd.idSuivi, c.dateCommande, c.montant, cd.nbExemplaire, s.statut ";
+        $requete .= "from commandedocument cd join suivi s on cd.idSuivi=s.id join commande c on cd.id=c.id ";
+        $requete .= "where cd.idLivreDvd = :idlivredvd ";
+        $requete .= "order by c.dateCommande DESC ";
+        return $this->conn->queryBDD($requete, $champNecessaire);
+    }
+    
+    private function selectCommandes(): ?array{
+        $requete = "Select * ";
+        $requete .= "from commande ";
+        $requete .= "order by CAST(id AS UNSIGNED) ASC ";
+        return $this->conn->queryBDD($requete);
+    }
+    
+        private function selectSuivis(): ?array{
+        $requete = "Select * ";
+        $requete .= "from suivi ";
+        $requete .= "order by CAST(id AS UNSIGNED) ASC ";
+        return $this->conn->queryBDD($requete);
+    }
+    
+    
+    private function insertCommandeDocument(?array $champs) : ?int{
+        if(empty($champs)){
+            return null;
+        }
+        $champNecessaire['id'] = $champs['Id'];
+        $champNecessaire['idlivre'] = $champs['IdLivreDVD'];
+        $champNecessaire['nbexemplaire'] = $champs['NbExemplaire'];
+        $champNecessaire['idsuivi'] = $champs['IdSuivi'];
+        $requete = "insert into commandedocument (id, nbExemplaire, idLivreDvd, idSuivi)";
+        $requete .= " values (";
+        $requete .= ":id, :nbexemplaire, :idlivre, :idsuivi);";
+        return $this->conn->updateBDD($requete, $champNecessaire);
+    }
+    
     /**
      * récupère les tuples d'une seule table
      * @param string $table
@@ -155,7 +257,7 @@ class MyAccessBDD extends AccessBDD {
         $requete .= ");";
         return $this->conn->updateBDD($requete, $champs);
     }
-
+    
     /**
      * demande de modification (update) d'un tuple dans une table
      * @param string $table
