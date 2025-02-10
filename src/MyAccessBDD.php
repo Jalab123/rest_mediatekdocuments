@@ -50,8 +50,12 @@ class MyAccessBDD extends AccessBDD {
                 return $this->selectCommandes();
             case "commandedocument" :
                 return $this->selectCommandeDocuments($champs);
+            case "abonnement":
+                return $this->selectAbonnement($champs);
             case "suivi":
                 return $this->selectSuivis();
+            case "document":
+                return $this->selectDocument($champs);
             case "" :
                 // return $this->uneFonction(parametres);
             default:
@@ -73,6 +77,8 @@ class MyAccessBDD extends AccessBDD {
                 // return $this->uneFonction(parametres);
             case "commandedocument":
                 return $this->insertCommandeDocument($champs);
+            case "abonnement":
+                return $this->insertAbonnement($champs);
             default:                    
                 // cas général
                 return $this->insertOneTupleOneTable($table, $champs);	
@@ -179,6 +185,37 @@ class MyAccessBDD extends AccessBDD {
         return $this->conn->queryBDD($requete, $champNecessaire);
     }
     
+    private function selectDocument(?array $champs): ?array{
+        if(empty($champs)){
+            return null;
+        }
+        if(!array_key_exists('id', $champs)){
+            return null;
+        }
+        $champNecessaire['id'] = $champs['id'];
+        $requete = "Select * ";
+        $requete .= "from document ";
+        $requete .= "where id = :id ";
+        return $this->conn->queryBDD($requete, $champNecessaire);
+    }
+    
+    private function selectAbonnement(?array $champs): ?array{
+        if(empty($champs)){
+            $requete = "SELECT * FROM abonnement a JOIN document d ON a.idRevue = d.id WHERE dateFinAbonnement - 30 < CURDATE() AND dateFinAbonnement > CURDATE() ORDER BY dateFinAbonnement; ";
+            return $this->conn->queryBDD($requete);      
+        }
+        if(!array_key_exists('idrevue', $champs)){
+            $requete = "SELECT * FROM abonnement a JOIN document d ON a.idRevue = d.id WHERE dateFinAbonnement - 30 < CURDATE() AND dateFinAbonnement > CURDATE() ORDER BY dateFinAbonnement; ";
+            return $this->conn->queryBDD($requete);
+        }
+        $champNecessaire['idrevue'] = $champs['idrevue'];
+        $requete = "Select * ";
+        $requete .= "from abonnement a join commande c on a.id = c.id ";
+        $requete .= "where idRevue = :idrevue ";
+        $requete .= "order by c.dateCommande DESC ";
+        return $this->conn->queryBDD($requete, $champNecessaire);
+    }
+    
     private function selectCommandes(): ?array{
         $requete = "Select * ";
         $requete .= "from commande ";
@@ -205,6 +242,19 @@ class MyAccessBDD extends AccessBDD {
         $requete = "insert into commandedocument (id, nbExemplaire, idLivreDvd, idSuivi)";
         $requete .= " values (";
         $requete .= ":id, :nbexemplaire, :idlivre, :idsuivi);";
+        return $this->conn->updateBDD($requete, $champNecessaire);
+    }
+    
+    private function insertAbonnement(?array $champs) : ?int{
+        if(empty($champs)){
+            return null;
+        }
+        $champNecessaire['id'] = $champs['Id'];
+        $champNecessaire['datefinabonnement'] = $champs['DateFinAbonnement'];
+        $champNecessaire['idrevue'] = $champs['IdRevue'];
+        $requete = "insert into abonnement (id, dateFinAbonnement, idRevue)";
+        $requete .= " values (";
+        $requete .= ":id, :datefinabonnement, :idrevue);";
         return $this->conn->updateBDD($requete, $champNecessaire);
     }
     
