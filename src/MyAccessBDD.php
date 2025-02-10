@@ -56,6 +56,8 @@ class MyAccessBDD extends AccessBDD {
                 return $this->selectSuivis();
             case "document":
                 return $this->selectDocument($champs);
+            case "utilisateur":
+                return $this->selectUtilisateur($champs);
             case "" :
                 // return $this->uneFonction(parametres);
             default:
@@ -169,6 +171,24 @@ class MyAccessBDD extends AccessBDD {
         $requete .= "where id=:id;";  
         return $this->conn->updateBDD($requete, $champNecessaire);	        
     }
+    
+    private function selectUtilisateur(?array $champs): ?array{
+        if(empty($champs)){
+            return null;
+        }
+        if(!array_key_exists('login', $champs)){
+            return null;
+        }
+        if(!array_key_exists('pwd', $champs)){
+            return null;
+        }
+        $champNecessaire['login'] = $champs['login'];
+        $champNecessaire['pwd'] = $champs['pwd'];
+        $requete = "Select idService ";
+        $requete .= "from utilisateur ";
+        $requete .= "where login = :login AND pwd = :pwd ";
+        return $this->conn->queryBDD($requete, $champNecessaire);
+    }
         
     private function selectCommandeDocuments(?array $champs): ?array{
         if(empty($champs)){
@@ -201,11 +221,11 @@ class MyAccessBDD extends AccessBDD {
     
     private function selectAbonnement(?array $champs): ?array{
         if(empty($champs)){
-            $requete = "SELECT * FROM abonnement a JOIN document d ON a.idRevue = d.id WHERE dateFinAbonnement - 30 < CURDATE() AND dateFinAbonnement > CURDATE() ORDER BY dateFinAbonnement; ";
+            $requete = "SELECT * FROM abonnement a JOIN document d ON a.idRevue = d.id WHERE dateFinAbonnement BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 30 DAY) ORDER BY dateFinAbonnement; ";
             return $this->conn->queryBDD($requete);      
         }
         if(!array_key_exists('idrevue', $champs)){
-            $requete = "SELECT * FROM abonnement a JOIN document d ON a.idRevue = d.id WHERE dateFinAbonnement - 30 < CURDATE() AND dateFinAbonnement > CURDATE() ORDER BY dateFinAbonnement; ";
+            $requete = "SELECT * FROM abonnement a JOIN document d ON a.idRevue = d.id WHERE dateFinAbonnement BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 30 DAY) ORDER BY dateFinAbonnement; ";
             return $this->conn->queryBDD($requete);
         }
         $champNecessaire['idrevue'] = $champs['idrevue'];
