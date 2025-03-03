@@ -58,6 +58,8 @@ class MyAccessBDD extends AccessBDD {
                 return $this->selectDocument($champs);
             case "utilisateur":
                 return $this->selectUtilisateur($champs);
+            case "service":
+                return $this->selectService($champs);
             case "" :
                 // return $this->uneFonction(parametres);
             default:
@@ -130,6 +132,11 @@ class MyAccessBDD extends AccessBDD {
         }
     }	    
     
+    /**
+     * modifie le statut d'un suivi grâce à son id
+     * @param array|null $champs
+     * @return int|null
+     */
     private function updateSuivi(?array $champs) : ?int {
         if(empty($champs)){
             return null;
@@ -142,6 +149,11 @@ class MyAccessBDD extends AccessBDD {
         return $this->conn->updateBDD($requete, $champNecessaire);	        
     }
     
+    /**
+     * supprime une commande dans la table correspondante
+     * @param array|null $champs
+     * @return int|null
+     */
     private function deleteCommande(?array $champs) : ?int{
         if(empty($champs)){
             return null;
@@ -152,6 +164,11 @@ class MyAccessBDD extends AccessBDD {
         return $this->conn->updateBDD($requete, $champNecessaire);	        
     }
     
+    /**
+     * supprime un commandedocument dans la table correspondante
+     * @param array|null $champs
+     * @return int|null
+     */
     private function deleteCommandeDocument(?array $champs) : ?int{
         if(empty($champs)){
             return null;
@@ -162,6 +179,11 @@ class MyAccessBDD extends AccessBDD {
         return $this->conn->updateBDD($requete, $champNecessaire);	        
     }
     
+    /**
+     * supprime un suivi dans la table correspondante
+     * @param array|null $champs
+     * @return int|null
+     */
     private function deleteSuivi(?array $champs) : ?int{
         if(empty($champs)){
             return null;
@@ -172,6 +194,30 @@ class MyAccessBDD extends AccessBDD {
         return $this->conn->updateBDD($requete, $champNecessaire);	        
     }
     
+    /**
+     * récupère le nom d'un service grâce à son id
+     * @param array|null $champs
+     * @return array|null
+     */
+    private function selectService(?array $champs) : ?array{
+        if(empty($champs)){
+            return null;
+        }
+        if(!array_key_exists('id', $champs)){
+            return null;
+        }
+        $champNecessaire['id'] = $champs['id'];
+        $requete = "Select nom ";
+        $requete .= "from service ";
+        $requete .= "where id = :id ";
+        return $this->conn->queryBDD($requete, $champNecessaire);
+    }
+    
+    /**
+     * sélectionne un utilisateur grâce à son login et pwd (tentative d'authentification)
+     * @param array|null $champs
+     * @return array|null
+     */
     private function selectUtilisateur(?array $champs): ?array{
         if(empty($champs)){
             return null;
@@ -190,6 +236,11 @@ class MyAccessBDD extends AccessBDD {
         return $this->conn->queryBDD($requete, $champNecessaire);
     }
         
+    /**
+     * récupère les informations sur les commandedocuments et commandes correspondant à un livre ou dvd spécifique
+     * @param array|null $champs
+     * @return array|null
+     */
     private function selectCommandeDocuments(?array $champs): ?array{
         if(empty($champs)){
             return null;
@@ -205,6 +256,12 @@ class MyAccessBDD extends AccessBDD {
         return $this->conn->queryBDD($requete, $champNecessaire);
     }
     
+    
+    /**
+     * récupère un document grâce à son id
+     * @param array|null $champs
+     * @return array|null
+     */
     private function selectDocument(?array $champs): ?array{
         if(empty($champs)){
             return null;
@@ -219,6 +276,12 @@ class MyAccessBDD extends AccessBDD {
         return $this->conn->queryBDD($requete, $champNecessaire);
     }
     
+    /**
+     * récupère la liste des informations sur un abonnement et la commande correspondant à une revue spécifique
+     * si aucun paramètre valide n'est donné, récupère les informations sur les abonnementts et documents dont l'abonnement se termine dans les 30 prochains jours
+     * @param array|null $champs
+     * @return array|null
+     */
     private function selectAbonnement(?array $champs): ?array{
         if(empty($champs)){
             $requete = "SELECT * FROM abonnement a JOIN document d ON a.idRevue = d.id WHERE dateFinAbonnement BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 30 DAY) ORDER BY dateFinAbonnement; ";
@@ -236,6 +299,10 @@ class MyAccessBDD extends AccessBDD {
         return $this->conn->queryBDD($requete, $champNecessaire);
     }
     
+    /**
+     * récupère la liste des commandes classées dans l'ordre croissant
+     * @return array|null
+     */
     private function selectCommandes(): ?array{
         $requete = "Select * ";
         $requete .= "from commande ";
@@ -243,14 +310,22 @@ class MyAccessBDD extends AccessBDD {
         return $this->conn->queryBDD($requete);
     }
     
-        private function selectSuivis(): ?array{
+    /**
+     * récupère la liste des suivis classés dans l'ordre croissant
+     * @return array|null
+     */
+    private function selectSuivis(): ?array{
         $requete = "Select * ";
         $requete .= "from suivi ";
         $requete .= "order by CAST(id AS UNSIGNED) ASC ";
         return $this->conn->queryBDD($requete);
     }
     
-    
+    /**
+     * insère un commandedocument dans la table correspondante
+     * @param array|null $champs
+     * @return int|null
+     */
     private function insertCommandeDocument(?array $champs) : ?int{
         if(empty($champs)){
             return null;
@@ -265,6 +340,11 @@ class MyAccessBDD extends AccessBDD {
         return $this->conn->updateBDD($requete, $champNecessaire);
     }
     
+    /**
+     * insère un abonnement dans la table correspondante
+     * @param array|null $champs
+     * @return int|null
+     */
     private function insertAbonnement(?array $champs) : ?int{
         if(empty($champs)){
             return null;
