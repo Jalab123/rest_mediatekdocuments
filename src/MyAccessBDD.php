@@ -83,6 +83,8 @@ class MyAccessBDD extends AccessBDD {
                 return $this->insertCommandeDocument($champs);
             case "abonnement":
                 return $this->insertAbonnement($champs);
+            case "exemplaire":
+                return $this->insertExemplaire($champs);
             default:                    
                 // cas général
                 return $this->insertOneTupleOneTable($table, $champs);	
@@ -355,6 +357,26 @@ class MyAccessBDD extends AccessBDD {
         $requete = "insert into abonnement (id, dateFinAbonnement, idRevue)";
         $requete .= " values (";
         $requete .= ":id, :datefinabonnement, :idrevue);";
+        return $this->conn->updateBDD($requete, $champNecessaire);
+    }
+    
+    /**
+     * insère un exemplaire dans la table correspondante
+     * @param array|null $champs
+     * @return int|null
+     */
+    private function insertExemplaire(?array $champs) : ?int{
+        if(empty($champs)){
+            return null;
+        }
+        $champNecessaire['id'] = $champs['Id'];
+        $champNecessaire['numero'] = $champs['Numero'];
+        $champNecessaire['dateAchat'] = $champs['DateAchat'];
+        $champNecessaire['photo'] = $champs['Photo'];
+        $champNecessaire['idEtat'] = $champs['IdEtat'];
+        $requete = "insert into exemplaire (id, numero, dateAchat, photo, idEtat)";
+        $requete .= " values (";
+        $requete .= ":id, :numero, :dateAchat, :photo, :idEtat);";
         return $this->conn->updateBDD($requete, $champNecessaire);
     }
     
